@@ -5,7 +5,7 @@ function resetCounters () {
 }
 
 Meteor.startup(() => {
-  global.beforeEach(() => {
+  global.afterEach(() => {
     resetCounters()
   })
 })

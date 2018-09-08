@@ -15,6 +15,8 @@ and
 The results are padded to 17 characters and exclude 0 and 1 since they are not
 considered "valid" Meteor mongo ID by SimpleSchema.
 
+The counters are reset after each test is run. Tested with `meteortesting:mocha`.
+
 ### INSTALLATION
 
 Make sure that you put `hexsprite:mock-mongo-id` at the top of the

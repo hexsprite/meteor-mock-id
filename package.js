@@ -21,6 +21,6 @@ Package.onUse(function (api) {
 Package.onTest(function (api) {
   api.use('ecmascript')
   api.use('tinytest')
-  api.use('meteor-mock-id')
+  api.use('hexsprite:mock-mongo-id')
   api.mainModule('meteor-mock-id-tests.js', 'server')
 })
