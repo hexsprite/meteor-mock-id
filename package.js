@@ -10,16 +10,17 @@ Package.describe({
   testOnly: true
 });
 
-Package.onUse(function(api) {
+Package.onUse(api => {
   api.versionsFrom('1.6.0.1');
   api.use('ecmascript');
   api.use('mongo')
+  // api.use('dburles:factory')
   api.mainModule('meteor-mock-id.js', 'server');
 });
 
-Package.onTest(function(api) {
+Package.onTest(api => {
   api.use('ecmascript');
   api.use('tinytest');
-  api.use('meteor-mock-id');
+  api.use('hexsprite:meteor-mock-id');
   api.mainModule('meteor-mock-id-tests.js', 'server');
 });
