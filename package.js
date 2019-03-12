@@ -1,6 +1,6 @@
 Package.describe({
   name: 'hexsprite:mock-mongo-id',
-  version: '0.0.1',
+  version: '0.0.2',
   summary:
     'Generate non-random document IDs for Mongo.Collection for testing purposes',
   // URL to the Git repository containing the source code for this package.

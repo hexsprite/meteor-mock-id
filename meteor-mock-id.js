@@ -10,30 +10,39 @@ Meteor.startup(() => {
   })
 })
 
-// replace Mongo.Collection with a Proxy that overrides _makeNewID
-const _orig_Collection = Mongo.Collection
-Mongo.Collection = new Proxy(_orig_Collection, {
-  construct (target, args) {
-    const collection = new target(...args)
-    if (collection._name) {
-      let counter = 2
-      let name = collection._name.toLowerCase().replace('_', '')
-      counters.set(name)
-      collection._makeNewID = function _makeNewID () {
-        counter = counters.get(name) || 2
-        while (
-          counter.toString().indexOf('0') !== -1 ||
-          counter.toString().indexOf('1') !== -1
-        ) {
-          counter++
-        }
-        shortName = name.slice(0, 17 - counter.toString().length)
-        const newId = `${shortName}${counter++}`.padEnd(17, 'x')
-        counters.set(name, counter)
-        return newId
+const constructor = Mongo.Collection
+
+const newCollection = function () {
+  let ret = constructor.apply(this, arguments)
+  let collection = this
+  if (collection._name) {
+    let counter = 2
+    let name = collection._name.toLowerCase().replace('_', '')
+    counters.set(name)
+    collection._makeNewID = function _makeNewID () {
+      counter = counters.get(name) || 2
+      while (
+        counter.toString().indexOf('0') !== -1 ||
+        counter.toString().indexOf('1') !== -1
+      ) {
+        counter++
       }
+      const shortName = name.slice(0, 17 - counter.toString().length)
+      const newId = `${shortName}${counter++}`.padEnd(17, 'x')
+      counters.set(name, counter)
+      return newId
     }
-    return collection
   }
-})
-Mongo.Collection.prototype.constructor = Mongo.Collection
+  return ret
+}
+
+for (let prop in constructor) {
+  if (constructor.hasOwnProperty(prop)) {
+    newCollection[prop] = constructor[prop]
+  }
+}
+
+newCollection.prototype = Mongo.Collection.prototype
+newCollection.prototype.constructor = newCollection
+Mongo.Collection = newCollection
+Meteor.Collection = Mongo.Collection
