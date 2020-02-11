@@ -32,6 +32,17 @@ const newCollection = function () {
       counters.set(name, counter)
       return newId
     }
+    // override insert using custom _id (used by dburles:factory)
+    const _insert = collection.insert
+    collection.insert = function(doc, ...args) {
+      if (doc._id) {
+        const err = new Error()
+        if (err.stack.indexOf('Function.Factory._create (packages/dburles:factory/factory.js') !== -1) {
+          doc._id = this._makeNewID()
+        }
+      }
+      return _insert.call(this, doc, ...args)
+    }
   }
   return ret
 }
@@ -46,3 +57,9 @@ newCollection.prototype = Mongo.Collection.prototype
 newCollection.prototype.constructor = newCollection
 Mongo.Collection = newCollection
 Meteor.Collection = Mongo.Collection
+
+// allow simpl-schema to validate these ids
+const RegEx = require('simpl-schema').RegEx
+const IdReString = RegEx.Id.toString()
+const newReString = `(${IdReString.slice(1, IdReString.length - 1)})|([a-z]+\\d+x*)`
+RegEx.Id = new RegExp(newReString)
