@@ -1,24 +1,23 @@
-let counters = new Map()
+import { Meteor } from 'meteor/meteor'
+import { Mongo } from 'meteor/mongo'
 
-function resetCounters () {
-  counters = new Map()
+let counters = new Map<string, number>()
+
+export function resetCounters () {
+  counters = new Map<string, number>()
 }
 
-Meteor.startup(() => {
-  global.afterEach(() => {
-    resetCounters()
-  })
-})
+global.afterEach(resetCounters)
+global.beforeEach(resetCounters)
 
 const constructor = Mongo.Collection
 
-const newCollection = function () {
+const newCollection = function (this: Mongo.Collection<unknown>) {
   let ret = constructor.apply(this, arguments)
   let collection = this
   if (collection._name) {
     let counter = 2
     let name = collection._name.toLowerCase().replace('_', '')
-    counters.set(name)
     collection._makeNewID = function _makeNewID () {
       counter = counters.get(name) || 2
       while (
@@ -32,12 +31,13 @@ const newCollection = function () {
       counters.set(name, counter)
       return newId
     }
+    //
     // override insert using custom _id (used by dburles:factory)
     const _insert = collection.insert
     collection.insert = function(doc, ...args) {
       if (doc._id) {
         const err = new Error()
-        if (err.stack.indexOf('Function.Factory._create (packages/dburles:factory/factory.js') !== -1) {
+        if (err.stack?.indexOf('packages/dburles:factory/factory.js') !== -1) {
           doc._id = this._makeNewID()
         }
       }
