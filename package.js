@@ -13,7 +13,7 @@ Package.describe({
 
 Package.onUse(function (api) {
   api.versionsFrom('1.6.0.1')
-  api.use('typescript@3.7.6')
+  api.use('typescript@4.0.0 || 3.0.0')
   api.use('mongo')
   api.use('meteortesting:mocha-core@8.1.2')
   api.mainModule('meteor-mock-id.ts', 'server')
