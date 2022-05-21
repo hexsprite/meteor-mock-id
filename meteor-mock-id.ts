@@ -1,25 +1,16 @@
 import { Meteor } from 'meteor/meteor'
 import { Mongo } from 'meteor/mongo'
 
-let counters = new Map<string, number>()
-
-export function resetCounters() {
-  counters = new Map<string, number>()
-}
-
-global.afterEach(resetCounters)
-global.beforeEach(resetCounters)
-
 const constructor = Mongo.Collection
 
 let anonCounter = 0
 
 const newCollection = function (this: Mongo.Collection<unknown>) {
-  let ret = constructor.apply(this, arguments)
-  let collection = this
-  let baseName: string = collection._name ?? `anon${anonCounter++}.`
+  const ret = constructor.apply(this, arguments)
+  const collection = this
+  const baseName: string = collection._name ?? `anon${anonCounter++}.`
   let counter = 2
-  let name = baseName.toLowerCase().replace('_', '')
+  const name = baseName.toLowerCase().replace('_', '')
 
   collection._makeNewID = function _makeNewID() {
     counter = counters.get(name) || 2
@@ -49,22 +40,32 @@ const newCollection = function (this: Mongo.Collection<unknown>) {
   return ret
 }
 
-for (let prop in constructor) {
+for (const prop in constructor) {
   if (constructor.hasOwnProperty(prop)) {
     newCollection[prop] = constructor[prop]
   }
 }
 
-newCollection.prototype = Mongo.Collection.prototype
-newCollection.prototype.constructor = newCollection
-Mongo.Collection = newCollection
-Meteor.Collection = Mongo.Collection
+// don't patch during E2E acceptance test to allow for easy parallelization
+if (!process.env.METEOR_E2E_TEST) {
+  newCollection.prototype = Mongo.Collection.prototype
+  newCollection.prototype.constructor = newCollection
+  Mongo.Collection = newCollection
+  Meteor.Collection = Mongo.Collection
 
-// allow simpl-schema to validate these ids
-const RegEx = require('simpl-schema').RegEx
-const IdReString = RegEx.Id.toString()
-const newReString = `(${IdReString.slice(
-  1,
-  IdReString.length - 1
-)})|([a-z]+\\d+x*)`
-RegEx.Id = new RegExp(newReString)
+  // allow simpl-schema to validate these ids
+  const RegEx = require('simpl-schema').RegEx
+  const IdReString = RegEx.Id.toString()
+  const newReString = `(${IdReString.slice(
+    1,
+    IdReString.length - 1
+  )})|([a-z]+\\d+x*)`
+  RegEx.Id = new RegExp(newReString)
+  global.afterEach(resetCounters)
+  global.beforeEach(resetCounters)
+}
+
+let counters = new Map<string, number>()
+export function resetCounters() {
+  counters = new Map<string, number>()
+}
