@@ -55,12 +55,15 @@ if (!process.env.METEOR_E2E_TEST) {
 
   // allow simpl-schema to validate these ids
   const RegEx = require('simpl-schema').RegEx
-  const IdReString = RegEx.Id.toString()
-  const newReString = `(${IdReString.slice(
-    1,
-    IdReString.length - 1
-  )})|([a-z]+\\d+x*)`
-  RegEx.Id = new RegExp(newReString)
+  if (RegEx) {
+    const IdReString = RegEx.Id.toString()
+    const newReString = `(${IdReString.slice(
+      1,
+      IdReString.length - 1,
+    )})|([a-z]+\\d+x*)`
+    RegEx.Id = new RegExp(newReString)
+  }
+
   global.afterEach(resetCounters)
   global.beforeEach(resetCounters)
 }
